@@ -4,5 +4,5 @@ app = fastapi.FastAPI()
 
 
 @app.get("/")
-async def main():
+async def main() -> dict:
     return {"message": "Hello, world!"}
