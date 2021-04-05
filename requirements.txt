@@ -1,0 +1,5 @@
+fastapi[all]
+scikit-learn
+pandas
+nose2
+mypy
