@@ -3,3 +3,4 @@ scikit-learn
 pandas
 nose2
 mypy
+bs4
