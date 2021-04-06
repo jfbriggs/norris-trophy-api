@@ -1,8 +1,10 @@
 import pandas as pd
 import datetime
+from current_data import get_current_team_standings, get_current_skater_data
+from typing import List
 
 
-def generate_seasons():
+def generate_seasons() -> List[str]:
     seasons = []
     current_date = datetime.datetime.now()
     current_month, current_year = current_date.month, current_date.year
@@ -29,4 +31,9 @@ def generate_seasons():
     return seasons
 
 
-print(generate_seasons())
+def get_current_data(year: str) -> None:
+    current_standings_data = get_current_team_standings(year)
+    current_skater_data = get_current_skater_data(year)
+
+    current_standings_data.to_csv("../nhl_data/season_standings/season_standings_20202021.csv", index_label=False)
+    current_skater_data.to_csv("../nhl_data/skater_stats/skater_stats_20202021.csv", index_label=False)
