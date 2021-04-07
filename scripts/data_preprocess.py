@@ -1,6 +1,6 @@
 import pandas as pd
 import datetime
-from scripts.current_data import get_current_team_standings, get_current_skater_data
+from current_data import get_current_team_standings, get_current_skater_data
 from typing import List
 
 
@@ -38,3 +38,46 @@ def get_current_data(year: str) -> None:
     # save up-to-date current season data (standings and skater data) to CSV files in data folder
     current_standings_data.to_csv("./nhl_data/season_standings/season_standings_20202021.csv", index_label=False)
     current_skater_data.to_csv("./nhl_data/skater_stats/skater_stats_20202021.csv", index_label=False)
+
+
+def create_dataframes(data_path: str) -> dict:
+    seasons = generate_seasons()
+
+    standings_prefix = "season_standings"
+    skater_stats_prefix = "skater_stats"
+    norris_voting_prefix = "norris_voting"
+
+    standings_dfs = []
+    skater_stats_dfs = []
+    voting_dfs = []
+
+    for season in seasons:
+        standings_df = pd.read_csv(f"{data_path}/{standings_prefix}/{standings_prefix}_{season}.csv")
+        standings_df["season"] = season
+        standings_dfs.append(standings_df)
+
+        skater_stats_df = pd.read_csv(f"{data_path}/{skater_stats_prefix}/{skater_stats_prefix}_{season}.csv")
+        skater_stats_df["season"] = season
+        skater_stats_dfs.append(skater_stats_df)
+
+        # for voting data, there's none for current, suspended season - skip it
+        try:
+            voting_df = pd.read_csv(f"{data_path}/{norris_voting_prefix}/{norris_voting_prefix}_{season}.csv")
+            voting_df["season"] = season
+            voting_dfs.append(voting_df)
+        except:
+            pass
+
+    return {
+        "standings": standings_dfs,
+        "skater_stats": skater_stats_dfs,
+        "voting": voting_dfs
+    }
+
+
+def aggregate_data(data: dict) -> dict:
+    result = {}
+    for dataset, df_list in data.items():
+        result[dataset] = pd.concat(df_list).reset_index(drop=True)
+
+    return result
