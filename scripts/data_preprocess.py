@@ -1,8 +1,8 @@
 import pandas as pd
 import datetime
 from current_data import get_current_team_standings, get_current_skater_data
-from typing import List, Dict, Tuple
-from sklearn.preprocessing import minmax_scale
+from typing import List, Dict
+from sklearn.preprocessing import minmax_scale, LabelEncoder
 
 
 def generate_seasons() -> List[str]:
@@ -365,11 +365,9 @@ def rescale_continuous(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def encode_categorical(df: pd.DataFrame) -> pd.DataFrame:
-    # generate dummy columns based on the team column
-    team_columns = pd.get_dummies(df["team"], prefix="team")
-
-    # join dummy columns to existing dataframes and remove the original team column
-    df = df.join(team_columns).drop("team", axis=1)
+    # encode team column -> convert to integers for use with tree-based models
+    encoder = LabelEncoder()
+    df["team"] = encoder.fit_transform(df["team"])
 
     return df
 
@@ -390,7 +388,7 @@ def post_merge_preprocess(df: pd.DataFrame) -> tuple:
     return past_data, current_data
 
 
-dfs = create_dataframes("../nhl_data")
+dfs = create_dataframes("./nhl_data")
 aggregated_data = aggregate_data(dfs)
 premp_data = pre_merge_preprocess(aggregated_data)
 merged_data = merge_dfs(premp_data)
