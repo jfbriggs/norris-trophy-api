@@ -15,7 +15,10 @@ class NorrisModel:
         self.estimator.fit(X_train, y_train)
 
     def predict(self, data: pd.DataFrame) -> List[dict]:
-        predictions = self.estimator.predict(data)
+        # ensure data does not have target variable or name/season columns included
+        data_filtered = data.drop(["norris_point_pct", "name", "season"], axis=1)
+
+        predictions = self.estimator.predict(data_filtered)
 
         # add prediction values as column, and display sorted descending
         data["predicted_point_pct"] = predictions
