@@ -9,5 +9,5 @@ class SampleTest(unittest.TestCase):
         self.assertEqual(2 - 1, 1)
 
     def test_multiply(self):
-        self.assertEqual(1 * 3, 4, "1 * 3 should equal 3")
+        self.assertEqual(1 * 3, 3, "1 * 3 should equal 3")
 
