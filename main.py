@@ -1,7 +1,24 @@
 import fastapi
-from scripts.data_preprocess import generate_seasons, get_current_data
+from scripts.current_data import get_current_data
+from scripts.data_preprocess import generate_seasons, merge_process
+from scripts.model import NorrisModel
+import uvicorn
+from typing import Optional
+
 
 app = fastapi.FastAPI()
+
+
+def setup():
+    seasons = generate_seasons()
+    current_year = seasons[-1][-4:]
+    get_current_data(current_year)
+
+    train_data, curr_data = merge_process('nhl_data')
+    est = NorrisModel()
+    est.fit(train_data)
+
+    return est, curr_data
 
 
 @app.get("/")
@@ -11,8 +28,29 @@ async def main() -> str:
 
 @app.get("/update")
 async def update() -> dict:
-    seasons = generate_seasons()
-    current_year = seasons[-1][-4:]
-    get_current_data(current_year)
+    global model
+    global current_data
+    model, current_data = setup()
 
-    return {"message": f"Data updated for the {seasons[-1]} season."}
+    return {"message": "Data updated."}
+
+
+@app.get("/predict")
+async def make_predictions(refresh: Optional[bool] = False):
+    if refresh:
+        await update()
+
+    top_ten = model.predict(current_data)
+
+    results = {}
+
+    for i in range(10):
+        results[i + 1] = top_ten[i]
+
+    return {"results": results}
+
+
+model, current_data = setup()
+
+if __name__ == "__main__":
+    uvicorn.run(app)
