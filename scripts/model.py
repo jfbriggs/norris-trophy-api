@@ -4,8 +4,8 @@ from typing import List
 
 
 class NorrisModel:
-    def __init__(self, estimator=GradientBoostingRegressor) -> None:
-        self.estimator = estimator()
+    def __init__(self, estimator=GradientBoostingRegressor()) -> None:
+        self.estimator = estimator
 
     def fit(self, data: pd.DataFrame) -> None:
         # separate features from target variable in train data
