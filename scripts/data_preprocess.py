@@ -1,7 +1,6 @@
 import pandas as pd
 import datetime
-from current_data import get_current_team_standings, get_current_skater_data
-from typing import List, Dict
+from typing import List, Dict, Tuple
 from sklearn.preprocessing import minmax_scale, LabelEncoder
 
 
@@ -28,15 +27,6 @@ def generate_seasons() -> List[str]:
             seasons.append("20" + first + "20" + second)
 
     return seasons
-
-
-def get_current_data(year: str) -> None:
-    current_standings_data = get_current_team_standings(year)
-    current_skater_data = get_current_skater_data(year)
-
-    # save up-to-date current season data (standings and skater data) to CSV files in data folder
-    current_standings_data.to_csv("./nhl_data/season_standings/season_standings_20202021.csv", index_label=False)
-    current_skater_data.to_csv("./nhl_data/skater_stats/skater_stats_20202021.csv", index_label=False)
 
 
 def create_dataframes(data_path: str) -> dict:
@@ -372,6 +362,16 @@ def encode_categorical(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def filter_data(df: pd.DataFrame) -> pd.DataFrame:
+    # filter data to when TOI/ATOI started being tracked (index 4388)
+    filtered_data = df.loc[4388:].copy()
+
+    # remove columns with null values left
+    filtered_data = filtered_data.dropna(axis=1)
+
+    return filtered_data
+
+
 def post_merge_preprocess(df: pd.DataFrame) -> tuple:
     seasons = generate_seasons()
 
@@ -381,6 +381,7 @@ def post_merge_preprocess(df: pd.DataFrame) -> tuple:
     df = generate_features(df)
     df = rescale_continuous(df)
     df = encode_categorical(df)
+    df = filter_data(df)
 
     past_data = df[df["season"] != seasons[-1]].copy()
     current_data = df[df["season"] == seasons[-1]].copy()
@@ -388,9 +389,10 @@ def post_merge_preprocess(df: pd.DataFrame) -> tuple:
     return past_data, current_data
 
 
-dfs = create_dataframes("./nhl_data")
-aggregated_data = aggregate_data(dfs)
-premp_data = pre_merge_preprocess(aggregated_data)
-merged_data = merge_dfs(premp_data)
-print(post_merge_preprocess(merged_data)[0].head())
-
+def merge_process(data_dir: str) -> tuple:
+    dfs = create_dataframes(data_dir)
+    aggregated_data = aggregate_data(dfs)
+    premp_data = pre_merge_preprocess(aggregated_data)
+    merged_data = merge_dfs(premp_data)
+    train_data, current_data = post_merge_preprocess(merged_data)
+    return train_data, current_data
