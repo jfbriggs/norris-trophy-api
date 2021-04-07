@@ -49,3 +49,12 @@ def get_current_skater_data(year: str) -> pd.DataFrame:
     skater_data_df = pd.DataFrame(skater_data, columns=table_headers)
 
     return skater_data_df
+
+
+def get_current_data(year: str) -> None:
+    current_standings_data = get_current_team_standings(year)
+    current_skater_data = get_current_skater_data(year)
+
+    # save up-to-date current season data (standings and skater data) to CSV files in data folder
+    current_standings_data.to_csv("./nhl_data/season_standings/season_standings_20202021.csv", index_label=False)
+    current_skater_data.to_csv("./nhl_data/skater_stats/skater_stats_20202021.csv", index_label=False)
