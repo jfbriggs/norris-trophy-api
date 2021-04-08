@@ -20,9 +20,11 @@ class NorrisModel:
 
         predictions = self.estimator.predict(data_filtered)
 
+        result = data[["name", "team"]].copy()
+
         # add prediction values as column, and display sorted descending
-        data["predicted_point_pct"] = predictions
-        top_ten = data[["name", "predicted_point_pct"]].sort_values(by="predicted_point_pct", ascending=False).head(10)
+        result["predicted_point_pct"] = predictions
+        top_ten = result[["name", "predicted_point_pct"]].sort_values(by="predicted_point_pct", ascending=False).head(10)
 
         # convert top 10 results to a list of dicts
         top_ten_list = top_ten.to_dict("records")
