@@ -10,14 +10,17 @@ app = fastapi.FastAPI()
 
 
 def setup():
+    print("Activating server and updating current season data...")
     seasons = generate_seasons()
     current_year = seasons[-1][-4:]
     get_current_data(current_year)
+    print("Current data updated.  Processing data and training model.")
 
     train_data, curr_data = merge_process('nhl_data')
     est = NorrisModel()
     est.fit(train_data)
 
+    print("Model trained.  Ready for prediction requests.")
     return est, curr_data
 
 
