@@ -1,7 +1,8 @@
 import pandas as pd
 import datetime
-from typing import List, Dict, Tuple
+from typing import List, Dict, Any
 from sklearn.preprocessing import minmax_scale, LabelEncoder
+import warnings
 
 
 def generate_seasons() -> List[str]:
@@ -346,10 +347,14 @@ def rescale_continuous(df: pd.DataFrame) -> pd.DataFrame:
             "points_per_60", "blocked_shots_per_game", "blocked_shots_per_60", "hits_per_game",
             "hits_per_60"]
 
-    for season in df["season"].unique():
-        season_cols = df.loc[df["season"] == season, cols].copy()
-        rescaled_data = minmax_scale(season_cols)
-        df.loc[df["season"] == season, cols] = rescaled_data
+    with warnings.catch_warnings():
+        # temporarily ignore RuntimeWarning for trying to rescale segments of data with NaN values
+        warnings.filterwarnings("ignore", category=RuntimeWarning)
+
+        for season in df["season"].unique():
+            season_cols = df.loc[df["season"] == season, cols].copy()
+            rescaled_data = minmax_scale(season_cols)
+            df.loc[df["season"] == season, cols] = rescaled_data
 
     return df
 
@@ -389,10 +394,25 @@ def post_merge_preprocess(df: pd.DataFrame) -> tuple:
     return past_data, current_data
 
 
+def make_pipeline(funcs: List[callable]) -> callable:
+    def inner(inp: Any) -> Any:
+        curr_val = inp
+        for f in funcs:
+            curr_val = f(curr_val)
+
+        return curr_val
+
+    return inner
+
+
 def merge_process(data_dir: str) -> tuple:
-    dfs = create_dataframes(data_dir)
-    aggregated_data = aggregate_data(dfs)
-    premp_data = pre_merge_preprocess(aggregated_data)
-    merged_data = merge_dfs(premp_data)
-    train_data, current_data = post_merge_preprocess(merged_data)
+    process_pipe = make_pipeline([create_dataframes, aggregate_data, pre_merge_preprocess, merge_dfs, post_merge_preprocess])
+    train_data, current_data = process_pipe(data_dir)
+
+    # dfs = create_dataframes(data_dir)
+    # aggregated_data = aggregate_data(dfs)
+    # premp_data = pre_merge_preprocess(aggregated_data)
+    # merged_data = merge_dfs(premp_data)
+    # train_data, current_data = post_merge_preprocess(merged_data)
+
     return train_data, current_data
