@@ -1,7 +1,7 @@
 import fastapi
-from scripts.current_data import get_current_data
-from scripts.data_preprocess import generate_seasons, merge_process
-from scripts.model import NorrisModel
+from src.current_data import get_current_data
+from src.data_preprocess import generate_seasons, merge_process
+from src.model import NorrisModel
 import uvicorn
 from typing import Optional
 
