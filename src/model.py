@@ -1,10 +1,11 @@
 import pandas as pd
+import numpy as np
 from sklearn.ensemble import GradientBoostingRegressor
 from typing import List
 
 
 class NorrisModel:
-    def __init__(self, estimator=GradientBoostingRegressor()) -> None:
+    def __init__(self, estimator=GradientBoostingRegressor(random_state=1)) -> None:
         self.estimator = estimator
 
     def fit(self, data: pd.DataFrame) -> None:
@@ -23,8 +24,8 @@ class NorrisModel:
         result = data[["name", "team"]].copy()
 
         # add prediction values as column, and display sorted descending
-        result["predicted_point_pct"] = predictions
-        top_ten = result[["name", "predicted_point_pct"]].sort_values(by="predicted_point_pct", ascending=False).head(10)
+        result["predicted_point_pct"] = np.round(predictions * 100, 2)
+        top_ten = result[["name", "team", "predicted_point_pct"]].sort_values(by="predicted_point_pct", ascending=False).head(10)
 
         # convert top 10 results to a list of dicts
         top_ten_list = top_ten.to_dict("records")

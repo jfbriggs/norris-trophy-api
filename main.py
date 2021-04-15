@@ -1,4 +1,5 @@
-import fastapi
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from src.current_data import get_current_data
 from src.data_preprocess import generate_seasons, merge_process
 from src.model import NorrisModel
@@ -6,8 +7,17 @@ import uvicorn
 from typing import Optional
 
 
-app = fastapi.FastAPI()
+app = FastAPI()
 
+origins = ["http://localhost:8080", "http://localhost"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 def setup():
     print("Activating server and updating current season data...")
@@ -56,4 +66,4 @@ async def make_predictions(refresh: Optional[bool] = False):
 model, current_data = setup()
 
 if __name__ == "__main__":
-    uvicorn.run(app)
+    uvicorn.run(app, port=8500)
